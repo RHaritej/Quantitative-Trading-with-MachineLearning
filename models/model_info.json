@@ -1,0 +1,102 @@
+{
+  "model": "Elastic Net",
+  "horizon_trading_days": 1,
+  "hyperparameters": {
+    "alpha_rel": 0.1,
+    "l1_ratio": 0.9
+  },
+  "selection_rule": "lowest development-period RMSE vs zero baseline at shortest horizon (holdout untouched)",
+  "trained_rows": 2790,
+  "trained_through_feature_date": "2026-10-08",
+  "target": "VOW3.DE",
+  "series_tickers": {
+    "VOW3_DE": "VOW3.DE",
+    "CON_DE": "CON.DE",
+    "SHA0_DE": "SHA0.DE",
+    "FR_PA": "FR.PA",
+    "IFX_DE": "IFX.DE",
+    "BAS_DE": "BAS.DE",
+    "ML_PA": "ML.PA",
+    "ZIL2_DE": "ZIL2.DE",
+    "GDAXI": "^GDAXI",
+    "EURUSD_X": "EURUSD=X"
+  },
+  "n_lags": 5,
+  "lag_start": {
+    "EURUSD_X": 1
+  },
+  "feature_columns": [
+    "VOW3_DE_lag0",
+    "VOW3_DE_lag1",
+    "VOW3_DE_lag2",
+    "VOW3_DE_lag3",
+    "VOW3_DE_lag4",
+    "CON_DE_lag0",
+    "CON_DE_lag1",
+    "CON_DE_lag2",
+    "CON_DE_lag3",
+    "CON_DE_lag4",
+    "SHA0_DE_lag0",
+    "SHA0_DE_lag1",
+    "SHA0_DE_lag2",
+    "SHA0_DE_lag3",
+    "SHA0_DE_lag4",
+    "FR_PA_lag0",
+    "FR_PA_lag1",
+    "FR_PA_lag2",
+    "FR_PA_lag3",
+    "FR_PA_lag4",
+    "IFX_DE_lag0",
+    "IFX_DE_lag1",
+    "IFX_DE_lag2",
+    "IFX_DE_lag3",
+    "IFX_DE_lag4",
+    "BAS_DE_lag0",
+    "BAS_DE_lag1",
+    "BAS_DE_lag2",
+    "BAS_DE_lag3",
+    "BAS_DE_lag4",
+    "ML_PA_lag0",
+    "ML_PA_lag1",
+    "ML_PA_lag2",
+    "ML_PA_lag3",
+    "ML_PA_lag4",
+    "ZIL2_DE_lag0",
+    "ZIL2_DE_lag1",
+    "ZIL2_DE_lag2",
+    "ZIL2_DE_lag3",
+    "ZIL2_DE_lag4",
+    "GDAXI_lag0",
+    "GDAXI_lag1",
+    "GDAXI_lag2",
+    "GDAXI_lag3",
+    "GDAXI_lag4",
+    "EURUSD_X_lag1",
+    "EURUSD_X_lag2",
+    "EURUSD_X_lag3",
+    "EURUSD_X_lag4",
+    "EURUSD_X_lag5"
+  ],
+  "preprocessing": "StandardScaler inside the sklearn pipeline for linear models; none for tree models",
+  "missing_data_policy": {
+    "max_start_date": "2016-01-04",
+    "ffill_limit_days": 5,
+    "excluded": {
+      "KBX_DE": "first price 2018-10-12 is after MAX_START_DATE 2016-01-04"
+    },
+    "prefilled_zero_returns": false
+  },
+  "data_range": [
+    "2015-10-09",
+    "2026-10-09"
+  ],
+  "versions": {
+    "scikit-learn": "1.9.1",
+    "xgboost": "3.4.1",
+    "lightgbm": "4.7.0",
+    "pandas": "2.2.3",
+    "numpy": "2.2.1",
+    "yfinance": "1.7.0"
+  },
+  "created": "2026-10-12T19:10:47"
+}
