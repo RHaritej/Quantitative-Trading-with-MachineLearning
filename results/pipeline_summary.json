@@ -1,0 +1,32 @@
+{
+  "target": "VOW3.DE",
+  "total_trading_days": 2797,
+  "date_range": [
+    "2015-10-09",
+    "2026-10-09"
+  ],
+  "retained_assets": [
+    "VOW3.DE",
+    "CON.DE",
+    "SHA0.DE",
+    "FR.PA",
+    "IFX.DE",
+    "BAS.DE",
+    "ML.PA",
+    "ZIL2.DE",
+    "^GDAXI",
+    "EURUSD=X"
+  ],
+  "excluded_assets": [
+    "KBX.DE"
+  ],
+  "feature_count": 50,
+  "demo_model": "Elastic Net",
+  "demo_horizon": 1,
+  "latest_feature_date": "2026-10-09",
+  "latest_prediction": 0.000296573676396838,
+  "latest_signal": "LONG",
+  "holdout_start": "2025-09-15",
+  "holdout_end": "2026-10-08",
+  "holdout_days_h1": 271
+}

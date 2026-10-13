@@ -1,0 +1,12 @@
+Series,First price,Status,Reason,Days forward-filled (kept)
+VOW3_DE,2015-01-02,kept,,0.0
+CON_DE,2015-01-02,kept,,0.0
+SHA0_DE,2015-10-09,kept,,0.0
+FR_PA,2015-01-02,kept,,1.0
+IFX_DE,2015-01-02,kept,,0.0
+BAS_DE,2015-01-02,kept,,0.0
+ML_PA,2015-01-02,kept,,1.0
+KBX_DE,2018-10-12,EXCLUDED,first price 2018-10-12 is after MAX_START_DATE 2016-01-04,
+ZIL2_DE,2015-01-02,kept,,0.0
+GDAXI,2015-01-02,kept,,5.0
+EURUSD_X,2015-01-02,kept,,3.0
