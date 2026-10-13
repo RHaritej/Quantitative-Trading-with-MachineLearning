@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quantitative Trading with Machine Learning — Supply Chain Alpha Simulator</title>
+  <meta name="description" content="Predicting Volkswagen AG stock returns from Tier-1 automotive supplier network dynamics using Elastic Net, LightGBM, and XGBoost with audited walk-forward backtesting.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=3.0">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <a href="#" class="nav-brand" id="brandLink">
+      <div class="brand-icon">VW</div>
+      <div class="brand-text">
+        <h1>AlphaChain Quant</h1>
+        <span>Volkswagen Supply Chain ML Engine</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <div class="status-badge" id="modelStatusBadge">
+        <span class="status-dot"></span>
+        <span>Elastic Net Deployed (h = 1d)</span>
+      </div>
+      <a href="/presentation/index.html" target="_blank" class="nav-link" id="slidesLink">Slides Deck</a>
+      <a href="/reports/UE24CS352A_MiniProject_Writeup.pdf" target="_blank" class="nav-link" id="pdfLink">2-Page PDF Write-up</a>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container">
+
+    <!-- Hero Header -->
+    <section class="hero">
+      <div class="hero-pill">
+        <span>PES University &bull; UE24CS352A Machine Learning Mini-Project</span>
+      </div>
+      <h2>Quantitative Trading with Machine Learning</h2>
+      <p class="hero-sub">
+        Predicting <strong>Volkswagen AG (VOW3.DE)</strong> return signals from Tier-1 automotive suppliers (Continental, Infineon, BASF, Michelin) &amp; macroeconomic indices under an audited, leak-free walk-forward ML framework.
+      </p>
+
+      <!-- Metrics Row -->
+      <div class="metrics-row">
+        <div class="metric-card">
+          <div class="metric-label">Dataset Horizon</div>
+          <div class="metric-value" id="metaDays">2,797</div>
+          <div class="metric-desc" id="metaPeriod">Synchronized trading days (2015–2026)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Feature Space</div>
+          <div class="metric-value" id="metaFeatures">50</div>
+          <div class="metric-desc">10 assets &times; 5 lags (EUR/USD lag0 omitted)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Holdout Net Return</div>
+          <div class="metric-value" style="color: var(--green);">+23.97%</div>
+          <div class="metric-desc">Decision Tree (h=5, c=0.50%, 12 trades, 0.1% fee)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Zero-Return Benchmark</div>
+          <div class="metric-value" style="color: var(--primary);">1.892%</div>
+          <div class="metric-desc">Holdout RMSE (No ML beats zero baseline)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Interactive Section: Simulator + Signal Card -->
+    <section class="simulator-grid" id="simulatorSection">
+
+      <!-- Left Column: Sliders & Scenario Presets -->
+      <div class="glass-panel">
+        <div class="panel-header">
+          <div>
+            <h3 class="panel-title">Supply Chain Scenario Simulator</h3>
+            <span class="panel-subtitle">Inject day-t percentage shocks (lag 0); backend combines them with real trailing historical lags 1..4</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <label for="thresholdSelect" style="font-size: 0.78rem; color: var(--text-muted);">Threshold c:</label>
+            <select id="thresholdSelect" style="background: rgba(255,255,255,0.08); color: var(--text-main); border: 1px solid var(--border-subtle); padding: 0.25rem 0.5rem; border-radius: 6px; font-family: var(--font-mono); font-size: 0.8rem;">
+              <option value="0.0000">0.00% (No Filter)</option>
+              <option value="0.0025" selected>0.25% (Balanced)</option>
+              <option value="0.0050">0.50% (High Conviction)</option>
+              <option value="0.0100">1.00% (Strict)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Scenario Preset Buttons -->
+        <div class="scenario-selector">
+          <button class="scenario-btn active" data-preset="baseline" id="btnPresetBaseline">Baseline / Flat</button>
+          <button class="scenario-btn" data-preset="semi_crunch" id="btnPresetSemi">Chip Shortage Shock</button>
+          <button class="scenario-btn" data-preset="sector_rally" id="btnPresetRally">Auto Sector Rally</button>
+          <button class="scenario-btn" data-preset="chemical_shock" id="btnPresetChem">Chemical &amp; Energy Spike</button>
+          <button class="scenario-btn" data-preset="fx_volatility" id="btnPresetFx">EUR/USD Surges</button>
+        </div>
+
+        <!-- Dynamic Sliders List -->
+        <div class="slider-group" id="slidersContainer"></div>
+      </div>
+
+      <!-- Right Column: Real-Time Signal Output Card -->
+      <div class="prediction-box">
+        <div class="glass-panel" style="display: flex; flex-direction: column; gap: 1.5rem;">
+          
+          <div class="panel-header" style="margin-bottom: 0.5rem;">
+            <h3 class="panel-title">Trained ML Model Inference</h3>
+            <span class="panel-subtitle">Production Pipeline (<code>models/final_model.joblib</code>) on 50 Features</span>
+          </div>
+
+          <!-- Dynamic Glow Signal Banner -->
+          <div class="signal-banner flat" id="signalBanner">
+            <div class="signal-type" id="signalType">FLAT / CASH</div>
+            <div class="signal-target-val" id="signalTargetVal">+0.030%</div>
+            <div class="signal-subtitle" id="signalSubText">Expected VW 1-Day Return vs Threshold c</div>
+          </div>
+
+          <!-- Execution Position Boxes -->
+          <div class="position-indicator">
+            <div class="pos-box">
+              <div class="label">Position</div>
+              <div class="val" id="signalPosition">0.0 (CASH)</div>
+            </div>
+            <div class="pos-box">
+              <div class="label">Conviction Ratio</div>
+              <div class="val" id="signalConfidence">0.12x</div>
+            </div>
+            <div class="pos-box">
+              <div class="label">Model Architecture</div>
+              <select id="modelSelect" style="background: rgba(255,255,255,0.08); color: var(--primary); border: 1px solid var(--border-subtle); padding: 0.2rem 0.35rem; border-radius: 6px; font-family: var(--font-mono); font-weight: 700; cursor: pointer; font-size: 0.74rem; width: 100%; outline: none;">
+                <option value="linear_reg" selected>Linear Regression (Active &beta;)</option>
+                <option value="elastic_net">Elastic Net (Active Regularized)</option>
+                <option value="decision_tree">Decision Tree (h=5d, +24.0%)</option>
+                <option value="elastic_net_sparse">Elastic Net (Sparse / Cash)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Factor Attribution Card -->
+          <div class="attribution-card">
+            <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.75rem;">
+              Primary Factor Impact on Forecast (&beta;<sub>k</sub> &times; Shock<sub>k</sub>)
+            </div>
+            <div id="attributionList"></div>
+          </div>
+
+          <!-- Audit Check Pill -->
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 0.85rem; font-size: 0.78rem; color: var(--text-dim); line-height: 1.5;">
+            &bull; <strong>Full Pipeline:</strong> Combines user lag0 shock with real historical trailing returns (lags 1..4) from <code>aligned_prices.csv</code>.
+            <br>&bull; <strong>Strict Timing:</strong> Model predicts 1-day VW return; backtest updates daily on next-day return (t+1) after 0.1% friction.
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Backtest Performance Visualizer -->
+    <section class="glass-panel backtest-section" id="backtestSection">
+      <div class="panel-header">
+        <div>
+          <h3 class="panel-title">Real Holdout Portfolio Trajectory (€1,000 Starting Capital)</h3>
+          <span class="panel-subtitle">Actual Daily Walk-Forward Equity on Untouched Holdout (Sept 2025 – Oct 2026, 271 days) with 0.1% Friction</span>
+        </div>
+        <div class="chart-btn-group">
+          <button class="chart-btn strat-toggle active" data-strat="buy_hold" id="toggleBuyHold">Buy &amp; Hold (-28.6%)</button>
+          <button class="chart-btn strat-toggle active" data-strat="cash" id="toggleCash">Cash (0.0%)</button>
+          <button class="chart-btn strat-toggle active" data-strat="linear_reg" id="toggleLinearReg">Linear Reg (+21.3%)</button>
+          <button class="chart-btn strat-toggle active" data-strat="decision_tree" id="toggleTree">Decision Tree (+24.0%)</button>
+          <button class="chart-btn strat-toggle active" data-strat="lightgbm" id="toggleLightGBM">LightGBM (+14.6%)</button>
+          <button class="chart-btn strat-toggle active" data-strat="elastic_net" id="toggleElastic">Elastic Net (0.0%)</button>
+        </div>
+      </div>
+
+      <div class="canvas-wrapper">
+        <canvas id="equityChart"></canvas>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; flex-wrap: wrap; margin-top: 1rem; font-size: 0.82rem; color: var(--text-muted);">
+        <span><strong>Empirical Context:</strong> Buy &amp; Hold declined -28.61% during Volkswagen's holdout slump. Positive model returns stem from 8 to 23 trades.</span>
+        <span>Initial Capital: €1,000 | Audited 0.1% Turnover Fee</span>
+      </div>
+    </section>
+
+    <!-- Model Comparison Horse-Race Matrix -->
+    <section class="glass-panel table-panel" id="leaderboardSection">
+      <div class="panel-header">
+        <div>
+          <h3 class="panel-title">Model Architecture Horse-Race</h3>
+          <span class="panel-subtitle">Comprehensive out-of-sample prediction metrics across forecast horizons</span>
+        </div>
+        <div class="chart-btn-group">
+          <button class="chart-btn h-filter-btn active" data-h="1" id="btnH1">Horizon h = 1 Day</button>
+          <button class="chart-btn h-filter-btn" data-h="5" id="btnH5">Horizon h = 5 Days</button>
+          <button class="chart-btn h-filter-btn" data-h="20" id="btnH20">Horizon h = 20 Days</button>
+        </div>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th>Model Architecture</th>
+              <th>Horizon</th>
+              <th>RMSE (Dec)</th>
+              <th>MAE (Dec)</th>
+              <th>OOS R²</th>
+              <th>Directional Acc.</th>
+              <th>Inference Time</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Supply Chain Ecosystem Topology -->
+    <section class="glass-panel" id="ecosystemSection">
+      <div class="panel-header">
+        <div>
+          <h3 class="panel-title">Volkswagen Automotive Supply Network</h3>
+          <span class="panel-subtitle">Tier-1 industrial suppliers and macroeconomic bellwethers modeled in the dataset</span>
+        </div>
+      </div>
+
+      <div class="ecosystem-grid">
+        <div class="supplier-card">
+          <div class="supplier-head">
+            <span class="supplier-name">Continental AG</span>
+            <span class="supplier-role">Tires &amp; Braking</span>
+          </div>
+          <p class="supplier-desc">Supplies chassis control, brake calipers, and cockpit electronics. Highly correlated with European auto unit volumes.</p>
+        </div>
+
+        <div class="supplier-card">
+          <div class="supplier-head">
+            <span class="supplier-name">Infineon Tech</span>
+            <span class="supplier-role">Automotive Chips</span>
+          </div>
+          <p class="supplier-desc">Supplies power semiconductors and microcontrollers for EV inverters and battery management systems.</p>
+        </div>
+
+        <div class="supplier-card">
+          <div class="supplier-head">
+            <span class="supplier-name">Schaeffler AG</span>
+            <span class="supplier-role">Drivetrain &amp; Bearings</span>
+          </div>
+          <p class="supplier-desc">Manufactures precision engine bearings, clutches, and hybrid transmission components for VW platforms.</p>
+        </div>
+
+        <div class="supplier-card">
+          <div class="supplier-head">
+            <span class="supplier-name">Valeo SE</span>
+            <span class="supplier-role">Sensors &amp; ADAS</span>
+          </div>
+          <p class="supplier-desc">Paris-listed supplier of LiDAR, ultrasonic parking sensors, and thermal powertrain cooling systems.</p>
+        </div>
+
+        <div class="supplier-card">
+          <div class="supplier-head">
+            <span class="supplier-name">BASF SE</span>
+            <span class="supplier-role">Chemicals &amp; Coatings</span>
+          </div>
+          <p class="supplier-desc">Supplies automotive OEM paint coatings, engineering plastics, and catalytic converter substrate materials.</p>
+        </div>
+
+        <div class="supplier-card">
+          <div class="supplier-head">
+            <span class="supplier-name">Michelin</span>
+            <span class="supplier-role">OEM Tires</span>
+          </div>
+          <p class="supplier-desc">Global tire manufacturer providing original equipment fitments for Volkswagen passenger and commercial fleets.</p>
+        </div>
+
+        <div class="supplier-card">
+          <div class="supplier-head">
+            <span class="supplier-name">DAX 40 Index</span>
+            <span class="supplier-role">Market Index</span>
+          </div>
+          <p class="supplier-desc">Captures broad German equity market beta, domestic investor sentiment, and monetary policy conditions.</p>
+        </div>
+
+        <div class="supplier-card">
+          <div class="supplier-head">
+            <span class="supplier-name">EUR/USD FX</span>
+            <span class="supplier-role">Currency Risk</span>
+          </div>
+          <p class="supplier-desc">Models export competitiveness. Restricted to lag &ge; 1 to eliminate asynchronous time zone lookahead bias.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="footer-team">
+      <div><strong>Rottela Haritej</strong> &bull; SRN: <code>PES1UG24AM231</code></div>
+      <div><strong>Pradyun P Urs</strong> &bull; SRN: <code>PES1UG24AM195</code></div>
+    </div>
+    <div class="footer-copy">
+      UE24CS352A – Machine Learning Mini-Project &bull; Department of Computer Science &amp; Engineering &bull; PES University
+      <br>Based on R. M. Glawion, <em>Quantitative Trading with Machine Learning</em> (Stanford CS229)
+    </div>
+  </footer>
+
+  <script src="app.js?v=3.0"></script>
+</body>
+</html>
